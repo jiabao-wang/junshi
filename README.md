@@ -33,6 +33,8 @@ Three.js Dynamic GLTF Model Viewer 是一个基于 Three.js 构建的 3D 模型�
 [下载链接](https://www.jetbrains.com/webstorm/download/#section=windows)
 ![运行](./images/run.png)
 
+由于模型文件较大，完整可运行项目请到我的网盘下载[百度网盘下载链接](https://pan.baidu.com/s/1JT_8IWcIKczPzPoCgre_VQ?pwd=7wkz)。
+
 ### 视角控制
 使用鼠标左键拖动：旋转视角。
 
