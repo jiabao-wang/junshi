@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Three.js GLTF Model Viewer with Map</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+    #controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    #controls button {
+      margin: 5px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<div id="controls">
+  <h3>模型控制</h3>
+  <div>
+    <button onclick="moveModel('x', 0.1)">X +0.1</button>
+    <button onclick="moveModel('x', -0.1)">X -0.1</button>
+  </div>
+  <div>
+    <button onclick="moveModel('y', 0.1)">Y +0.1</button>
+    <button onclick="moveModel('y', -0.1)">Y -0.1</button>
+  </div>
+  <div>
+    <button onclick="moveModel('z', 0.1)">Z +0.1</button>
+    <button onclick="moveModel('z', -0.1)">Z -0.1</button>
+  </div>
+  <div>
+    <button onclick="rotateModel('x', 0.1)">Rotate X +0.1</button>
+    <button onclick="rotateModel('x', -0.1)">Rotate X -0.1</button>
+  </div>
+  <div>
+    <button onclick="rotateModel('y', 0.1)">Rotate Y +0.1</button>
+    <button onclick="rotateModel('y', -0.1)">Rotate Y -0.1</button>
+  </div>
+  <div>
+    <button onclick="rotateModel('z', 0.1)">Rotate Z +0.1</button>
+    <button onclick="rotateModel('z', -0.1)">Rotate Z -0.1</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+  let scene, camera, renderer, model, controls;
+
+  function init() {
+    // 创建场景
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x333333);
+
+    // 创建相机
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(20, 10, 20); // 调整相机位置以更好地观察地图
+
+    // 创建渲染器
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // 添加 OrbitControls
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.screenSpacePanning = false;
+    controls.minDistance = 1;
+    controls.maxDistance = 100;
+    controls.maxPolarAngle = Math.PI / 2;
+
+    // 添加增强光照
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+    scene.add(ambientLight);
+    const directionalLight1 = new THREE.DirectionalLight(0xffffff, 1.2);
+    directionalLight1.position.set(10, 10, 10);
+    scene.add(directionalLight1);
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight2.position.set(-10, 10, -10);
+    scene.add(directionalLight2);
+    const pointLight = new THREE.PointLight(0xffffff, 1.0, 100);
+    pointLight.position.set(0, 5, 0);
+    scene.add(pointLight);
+
+    // 添加坐标轴（X: 红色, Y: 绿色, Z: 蓝色）
+    const axesHelper = new THREE.AxesHelper(10); // 长度为 10
+    scene.add(axesHelper);
+
+    // 创建 XOY 平面地图
+    const mapGeometry = new THREE.PlaneGeometry(50, 50); // 地图大小 50x50
+    const textureLoader = new THREE.TextureLoader();
+    const mapTexture = textureLoader.load('https://threejs.org/examples/textures/uv_grid_opengl.jpg'); // 占位纹理，替换为您的地图图片
+    const mapMaterial = new THREE.MeshStandardMaterial({ map: mapTexture });
+    const mapPlane = new THREE.Mesh(mapGeometry, mapMaterial);
+    mapPlane.rotation.x = -Math.PI / 2; // 旋转到 XOY 平面
+    mapPlane.position.set(0, 0, 0); // 放置在 Y=0
+    mapPlane.receiveShadow = true;
+    scene.add(mapPlane);
+
+    // 添加一个可见的正方体作为测试
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    const cube = new THREE.Mesh(geometry, material);
+    cube.position.set(0, 0.5, 0); // 放置在地图上方
+    scene.add(cube);
+
+    // 加载 GLTF 模型
+    const loader = new THREE.GLTFLoader();
+    loader.load(
+            './t-62a_main_battle_tank/scene.gltf',
+            function (gltf) {
+              model = gltf.scene;
+              model.position.set(0, 0, 0); // 初始位置，Y 坐标贴近地图
+              model.scale.set(1, 1, 1);
+              model.traverse(child => {
+                if (child.isMesh) {
+                  if (!child.material) {
+                    child.material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+                  }
+                }
+              });
+              scene.add(model);
+              console.log('Model loaded successfully:', model);
+              const box = new THREE.Box3().setFromObject(model);
+              console.log('Model bounding box:', box);
+
+              // 调整模型 Y 坐标，确保在地图表面
+              const modelHeight = box.max.y - box.min.y;
+              model.position.y = modelHeight / 2; // 将模型底部贴近地图
+            },
+            function (xhr) {
+              console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            function (error) {
+              console.error('An error happened while loading the model:', error);
+            }
+    );
+
+    // 窗口大小调整
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    animate();
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+
+  // 移动模型（限制 Y 坐标）
+  window.moveModel = function(axis, value) {
+    if (model) {
+      if (axis !== 'y') { // 限制 Y 轴手动移动，保持贴地
+        model.position[axis] += value;
+      }
+    }
+  }
+
+  // 旋转模型
+  window.rotateModel = function(axis, value) {
+    if (model) {
+      model.rotation[axis] += value;
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
