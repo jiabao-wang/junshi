@@ -201,6 +201,17 @@ async def update_path(model_id: str):
 - 前端：Three.js、HTML5、CSS3、JavaScript
 - 后端：FastAPI (Python)
 
+## 相关资源
+1. Three.js 文档: [Three.js Documentation](https://threejs.org/docs/)
+2. FastAPI 文档: [FastAPI Documentation](https://fastapi.tiangolo.com/)
+3. GLTF 文件格式: [glTF](https://www.khronos.org/gltf/)
+5. 3d 模型资源: [Sketchfab](https://sketchfab.com/)
+5. 3d 模型资源: [Cgmszj](https://www.cgmszj.com/)
+5. 3d 模型资源: [Free3d](https://free3d.com/)
+6. 在线 3D 查看器: [3d viewer](https://3dviewer.net/)
+7. 在线 3D 编辑器: [gltf nsdt](https://gltf.nsdt.cloud/)
+8. 在线 3D 文件转换: [Convertio](https://convertio.co/zh/)
+
 ## 版本
 - 2025-05-19 06:21 PM PDT: 初始版本发布，支持基本模型展示、添加、位置修改和动态坐标获取。新增支持多个动态模型（tank, soldier, tent, car）。
 
