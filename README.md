@@ -89,7 +89,8 @@ Three.js Dynamic GLTF Model Viewer 是一个基于 Three.js 构建的 3D 模型�
 ### 删除模型：
 调用 `scene.remove(model);` 或刷新页面清空所有模型。
 ## 后端接口
-后端使用 FastAPI 提供动态坐标更新服务，运行在 http://localhost:8000。以下是接口详情：
+后端使用 FastAPI 提供动态坐标更新服务，运行在 http://localhost:8000。
+以下是接口详情：
 1. 获取模型路径更新
 - URL: `/api/update_path/{model_id}`
 - 方法: GET
